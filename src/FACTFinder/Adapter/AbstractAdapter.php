@@ -92,7 +92,8 @@ abstract class AbstractAdapter
 
     protected function useJsonResponseContentProcessor()
     {
-        $this->responseContentProcessor = function($string) {
+        $log = $this->log;
+        $this->responseContentProcessor = function($string) use($log) {
 
             // The second parameter turns objects into associative arrays.
             // stdClass objects don't really have any advantages over plain
@@ -105,9 +106,9 @@ abstract class AbstractAdapter
                 );
 
             if(is_array($jsonData) && isset($jsonData['error'])) {
-                $this->log->error("FACT-Finder returned error: " . strip_tags($jsonData['error']));
+                $log->error("FACT-Finder returned error: " . strip_tags($jsonData['error']));
                 if(isset($jsonData['stacktrace'])) {
-                    $this->log->error("Stacktrace:\n" . $jsonData['stacktrace']);
+                    $log->error("Stacktrace:\n" . $jsonData['stacktrace']);
                 }
             }
             return $jsonData;
@@ -116,14 +117,15 @@ abstract class AbstractAdapter
 
     protected function useXmlResponseContentProcessor()
     {
-        $this->responseContentProcessor = function($string) {
+        $log = $this->log;
+        $this->responseContentProcessor = function($string) use($log) {
             libxml_use_internal_errors(true);
             // The constructor throws an exception on error
             $response = new \SimpleXMLElement($string);
             if(isset($response->error)) {
-                $this->log->error("FACT-Finder returned error: " . strip_tags($response->error));
+                $log->error("FACT-Finder returned error: " . strip_tags($response->error));
                 if(isset($response->stacktrace)) {
-                    $this->log->error("Stacktrace:\n" . $response->stacktrace);
+                    $log->error("Stacktrace:\n" . $response->stacktrace);
                 }
             }
             return $response;
